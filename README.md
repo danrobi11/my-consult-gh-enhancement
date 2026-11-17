@@ -6,7 +6,7 @@ Made with grok.com
 
 
 ```
-;; Emacs in a terminal.
+;; Fix for Emacs in a terminal.
 ;; Fix the `markdown-display-inline-images' signals "Cannot show images".
 ;; That abort drops the GitHub commit prompt.
 (advice-add 'markdown-display-inline-images :around
