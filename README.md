@@ -5,8 +5,9 @@
 Made with grok.com
 
 
+### Fix for Emacs in a terminal.
 ```
-;; Fix for Emacs in a terminal.
+
 ;; Fix the `markdown-display-inline-images' signals "Cannot show images".
 ;; That abort drops the GitHub commit prompt.
 (advice-add 'markdown-display-inline-images :around
@@ -15,7 +16,10 @@ Made with grok.com
                 (apply orig args))))
 
 ;; --------------------------------------------------------------------------
+```
 
+###  gh-mode-line-mode
+```
 ;; Mode-line chips.
 ;; M-x gh-mode-line-mode turns them off when the work is done.
 ;; A consult-gh push turns the mode on and watches that repository.
@@ -37,7 +41,10 @@ Made with grok.com
 ;; That stops the poll and clears the chips.
 
 ;; ---------------------------------------
+```
 
+### my-consult-gh-release
+```
 ;; Release asset list.  M-x my-consult-gh-release-download
 (require 'my-consult-gh-release)
 
@@ -54,7 +61,10 @@ Made with grok.com
 ;;   q    quit
 
 ;; ---------------------------------------
+```
 
+### my-consult-gh-star-and-reaction
+```
 ;; Star a repository, or react to the open release note.
 ;; M-x my-consult-gh-star-and-reaction
 (require 'my-consult-gh-star-and-reaction)
@@ -68,7 +78,10 @@ Made with grok.com
 ;; The echo area reports the result after GitHub responds.
 
 ;; ---------------------------------------
+```
 
+### my-consult-gh-release-list
+```
 ;; From an elfeed entry, list that GitHub release's repository.
 ;; M-x my-consult-gh-release-list
 (require 'my-consult-gh-release-list)
