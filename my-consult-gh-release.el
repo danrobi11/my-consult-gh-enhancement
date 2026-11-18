@@ -188,9 +188,13 @@ only after the process exits."
     (unless asset
       (user-error "No asset on this line"))
     (let* ((name (plist-get asset :name))
-           (dir (read-directory-name
-                 (format "Download %s to directory: " name)
-                 nil nil t))
+           ;; gh does not expand "~".  A typed "~/bin" would otherwise
+           ;; become a directory whose name is "~".
+           (dir (file-name-as-directory
+                 (expand-file-name
+                  (read-directory-name
+                   (format "Download %s to directory: " name)
+                   nil nil t))))
            (dest (expand-file-name name dir))
            (clobber nil))
       (when (file-exists-p dest)
@@ -201,7 +205,7 @@ only after the process exits."
        (plist-get asset :repo)
        (plist-get asset :tag)
        name
-       (file-name-as-directory dir)
+       dir
        my-consult-gh-release--host
        clobber))))
 
