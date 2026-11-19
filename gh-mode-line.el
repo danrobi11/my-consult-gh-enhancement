@@ -18,10 +18,11 @@
 ;; uses the success or failed face.  The bell uses its own face.
 ;; These colors are temporary.
 ;;
-;; Polls GitHub every 2 minutes.  A consult-gh push turns the mode on,
-;; watches that repository, and polls again after 20 seconds so the
-;; new run can appear.  Turn the mode off when the work is done.
-;; That stops the poll and clears the chips.
+;; Polls GitHub every 2 minutes.  A consult-gh push, or a workflow
+;; dispatch that GitHub accepts, turns the mode on, watches that
+;; repository, and polls again after 20 seconds so the new run can
+;; appear.  Turn the mode off when the work is done.  That stops the
+;; poll and clears the chips.
 
 ;;; Code:
 
@@ -125,9 +126,10 @@ Each element is a plist: :full :name :since :phase :value :token.")
 
 (defun gh-mode-line-watch (full)
   "Watch FULL and turn `gh-mode-line-mode' on.
-FULL is an owner/name string.  A new push while a run is still
-going keeps the earlier start time, so both runs stay in the count.
-A push after the previous run finished starts a new watch window."
+FULL is an owner/name string.  A new push or workflow dispatch
+while a run is still going keeps the earlier start time, so both
+runs stay in the count.  One that starts after the previous run
+finished opens a new watch window."
   (when (and (stringp full) (not (string-empty-p full)))
     (let ((repo (gh-mode-line--find full))
           (since (time-subtract (current-time) 15)))
@@ -158,6 +160,40 @@ ARGS are the remaining arguments of `consult-gh--create-commit-single-file'."
 
 (advice-add 'consult-gh--create-commit-single-file :around
             #'gh-mode-line--after-push)
+
+(defvar gh-mode-line--dispatch-repo nil
+  "Repository of the workflow dispatch currently being started.")
+
+(defun gh-mode-line--watch-when-done (repo when-done)
+  "Watch REPO after a workflow dispatch, then call WHEN-DONE.
+consult-gh calls WHEN-DONE only when `gh workflow run' exits 0."
+  (lambda (status output)
+    (gh-mode-line-watch repo)
+    (when (functionp when-done)
+      (funcall when-done status output))))
+
+(defun gh-mode-line--around-workflow-run (orig repo id-or-name &rest args)
+  "Remember REPO while ORIG starts workflow ID-OR-NAME.
+ARGS are the optional ref arguments."
+  (let ((gh-mode-line--dispatch-repo repo))
+    (apply orig repo id-or-name args)))
+
+(defun gh-mode-line--around-make-process (orig name &rest args)
+  "Wrap a workflow dispatch so a successful run watches its repository.
+NAME and ARGS are the arguments of `consult-gh--make-process'."
+  (if (not gh-mode-line--dispatch-repo)
+      (apply orig name args)
+    (let ((args (cl-copy-list args)))
+      (plist-put args :when-done
+                 (gh-mode-line--watch-when-done
+                  gh-mode-line--dispatch-repo
+                  (plist-get args :when-done)))
+      (apply orig name args))))
+
+(advice-add 'consult-gh--workflow-run :around
+            #'gh-mode-line--around-workflow-run)
+(advice-add 'consult-gh--make-process :around
+            #'gh-mode-line--around-make-process)
 
 (defun gh-mode-line--parse-time (value)
   "Decode a GitHub timestamp VALUE, or return nil."
