@@ -22,7 +22,7 @@ Made with grok.com
 ```
 ;; Mode-line chips.
 ;; M-x gh-mode-line-mode turns them off when the work is done.
-;; A consult-gh push turns the mode on and watches that repository.
+;; A consult-gh push or an accepted workflow run turns the mode on and watches that repository.
 (require 'gh-mode-line)
 
 ;; Global minor mode `gh-mode-line-mode'.
